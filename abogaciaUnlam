@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malla Curricular: Derecho</title>
+    <style>
+        /* Importa la fuente Century Gothic desde Google Fonts (o una similar si no está disponible) */
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap'); /* Usamos Montserrat como alternativa por si Century Gothic no carga siempre */
+
+        body {
+            font-family: 'Montserrat', sans-serif; /* Usamos Montserrat como alternativa */
+            background-color: #f3e5f5; /* Lila pastel suave */
+            color: #4a148c; /* Morado oscuro para el texto */
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif; /* Usamos Montserrat */
+            font-weight: 700; /* Negrita para el título */
+            color: #6a1b9a; /* Morado más vibrante para el título */
+            margin-bottom: 30px;
+        }
+
+        .malla-container {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto; /* Permite desplazamiento horizontal si hay muchos ciclos */
+            padding-bottom: 20px;
+            max-width: 100%;
+        }
+
+        .año-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Espacio entre los cuatrimestres dentro del año */
+        }
+
+        .año-container > h2 {
+            font-size: 1.8em;
+            color: #8e24aa;
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 3px solid #ce93d8;
+            padding-bottom: 8px;
+        }
+
+        .ciclo {
+            background-color: #e1bee7; /* Lila pastel un poco más oscuro */
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            min-width: 280px; /* Ancho mínimo para cada cuatrimestre */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ciclo h3 {
+            font-size: 1.3em;
+            color: #8e24aa; /* Morado intermedio */
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ce93d8;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .materia {
+            background-color: #fce4ec; /* Lila muy claro */
+            border: 1px solid #ce93d8;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            position: relative;
+            user-select: none; /* Evita selección de texto al hacer clic */
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Alinea el texto y el checkmark */
+            text-align: left;
+            font-size: 0.95em;
+        }
+
+        .materia:last-child {
+            margin-bottom: 0;
+        }
+
+        .materia:hover:not(.aprobada):not(.bloqueada) {
+            background-color: #e0b0ff; /* Lila un poco más oscuro al pasar el mouse */
+            transform: translateY(-2px);
+        }
+
+        .materia.aprobada {
+            background-color: #c8e6c9; /* Verde pastel */
+            border-color: #81c784;
+            color: #2e7d32; /* Verde oscuro */
+            cursor: default;
+            text-decoration: line-through;
+            opacity: 0.9;
+        }
+
+        .materia.aprobada .checkmark {
+            color: #2e7d32;
+            font-size: 1.2em;
+        }
+
+        .materia.bloqueada {
+            background-color: #ffe0b2; /* Naranja pastel para bloqueado */
+            border-color: #ffb74d;
+            color: #e65100; /* Naranja oscuro */
+            cursor: not-allowed;
+            opacity: 0.6;
+            filter: grayscale(20%); /* Ligeramente desaturado */
+        }
+
+        /* Tooltip para materias bloqueadas */
+        .materia.bloqueada .tooltip {
+            visibility: hidden;
+            width: 220px; /* Ancho ajustable */
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px 10px;
+            position: absolute;
+            z-index: 10; /* Asegura que esté por encima de otros elementos */
+            bottom: 105%; /* Arriba del elemento */
+            left: 50%;
+            transform: translateX(-50%); /* Centra el tooltip */
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.75em;
+            white-space: normal;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-weight: normal; /* El texto del tooltip no debe ser negrita */
+        }
+
+        .materia.bloqueada .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+
+        .materia.bloqueada:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .reset-button {
+            margin-top: 30px;
+            padding: 12px 25px;
+            background-color: #ab47bc; /* Morado medio */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.05em;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .reset-button:hover {
+            background-color: #8e24aa; /* Morado más oscuro al pasar el mouse */
+        }
+    </style>
+</head>
+<body>
+    <h1>Malla Curricular: Derecho</h1>
+
+    <div class="malla-container" id="malla-curricular">
+        </div>
+
+    <button class="reset-button" onclick="resetProgress()">Reiniciar Progreso</button>
+
+    <script>
+        // Define la estructura de tu malla curricular aquí
+        // "id": Identificador único de la materia
+        // "nombre": Nombre de la materia (código + nombre)
+        // "correlativas": Array de IDs de las materias que deben estar aprobadas
+        const mallaCurricular = {
+            "1er Año": {
+                "1° Cuatrimestre": [
+                    { id: "02302", nombre: "02302 - DERECHO POLÍTICO", correlativas: [] },
+                    { id: "02340", nombre: "02340 - INTRODUCCIÓN AL ESTUDIO DEL DERECHO", correlativas: [] },
+                    { id: "02341", nombre: "02341 - HISTORIA Y EVOLUCIÓN DE LAS INSTITUCIONES DEL DERECHO", correlativas: [] }
+                ],
+                "2° Cuatrimestre": [
+                    { id: "00901", nombre: "00901 - INGLÉS NIVEL I", correlativas: [] },
+                    { id: "02304", nombre: "02304 - DERECHO CONSTITUCIONAL I", correlativas: ["02340", "02302"] },
+                    { id: "02306", nombre: "02306 - FILOSOFÍA DEL DERECHO", correlativas: [] },
+                    { id: "02309", nombre: "02309 - ECONOMÍA POLÍTICA", correlativas: [] },
+                    { id: "02342", nombre: "02342 - DERECHO CIVIL Y COMERCIAL I (PARTE GENERAL)", correlativas: ["02341", "02340"] }
+                ]
+            },
+            "2do Año": {
+                "1° Cuatrimestre": [
+                    { id: "00911", nombre: "00911 - COMPUTACIÓN NIVEL I", correlativas: [] },
+                    { id: "02305", nombre: "02305 - SOCIOLOGÍA", correlativas: ["02306"] },
+                    { id: "02314", nombre: "02314 - DERECHO CONSTITUCIONAL II", correlativas: ["02304"] },
+                    { id: "02318", nombre: "02318 - DERECHO ADMINISTRATIVO I", correlativas: ["02304"] },
+                    { id: "02343", nombre: "02343 - DERECHO CIVIL Y COMERCIAL II (OBLIGACIONES CIVILES Y COMERCIALES)", correlativas: ["02342"] }
+                ],
+                "2° Cuatrimestre": [
+                    { id: "00902", nombre: "00902 - INGLÉS NIVEL II", correlativas: ["00901"] },
+                    { id: "02307", nombre: "02307 - DERECHO PENAL I", correlativas: ["02304"] },
+                    { id: "02333", nombre: "02333 - DERECHO PÚBLICO: PROVINCIAL Y MUNICIPAL", correlativas: ["02304"] },
+                    { id: "02344", nombre: "02344 - DERECHO CIVIL Y COMERCIAL III (CONTRATOS CIVILES Y COMERCIALES)", correlativas: ["02343"] }
+                ]
+            },
+            "3er Año": {
+                "1° Cuatrimestre": [
+                    { id: "00912", nombre: "00912 - COMPUTACIÓN NIVEL II", correlativas: ["00911"] },
+                    { id: "02311", nombre: "02311 - DERECHO PENAL II", correlativas: ["02307"] },
+                    { id: "02345", nombre: "02345 - DERECHO CIVIL Y COMERCIAL IV (DERECHOS REALES Y GARANTÍAS)", correlativas: ["02344"] },
+                    { id: "02346", nombre: "02346 - DERECHO EMPRESARIO I (SOCIEDADES COMERCIALES Y SEGUROS)", correlativas: ["02344"] }
+                ],
+                "2° Cuatrimestre": [
+                    { id: "02316", nombre: "02316 - DERECHO PROCESAL I", correlativas: ["02314", "02311"] },
+                    { id: "02327", nombre: "02327 - DERECHO ADMINISTRATIVO II", correlativas: ["02318"] },
+                    { id: "02347", nombre: "02347 - DERECHO CIVIL Y COMERCIAL V (DERECHO DE FAMILIA Y SUCESIONES)", correlativas: ["02345"] }
+                ]
+            },
+            "4to Año": {
+                "1° Cuatrimestre": [
+                    { id: "00903", nombre: "00903 - INGLÉS NIVEL III", correlativas: ["00902"] },
+                    { id: "02323", nombre: "02323 - DERECHO PROCESAL II", correlativas: ["02316", "02347"] },
+                    { id: "02324", nombre: "02324 - DERECHO INTERNACIONAL PUBLICO", correlativas: ["02314"] },
+                    { id: "02348", nombre: "02348 - DERECHO DEL TRABAJO Y LA SEGURIDAD SOCIAL", correlativas: ["02344"] }
+                ],
+                "2° Cuatrimestre": [
+                    { id: "00904", nombre: "00904 - INGLÉS NIVEL IV", correlativas: ["00903"] },
+                    { id: "02312", nombre: "02312 - FINANZAS Y DERECHO TRIBUTARIO", correlativas: ["02309", "02323", "02343"] },
+                    { id: "02319", nombre: "02319 - POLÍTICA ECONÓMICA", correlativas: ["02309"] },
+                    { id: "02338", nombre: "02338 - TALLER DE RETORICA Y ORATORIA FORENSE", correlativas: ["02305"] },
+                    { id: "02349", nombre: "02349 - DERECHO EMPRESARIO II (TÍTULOS VALORES Y CONCURSOS Y QUIEBRAS)", correlativas: ["02323", "02346", "02348"] }
+                ]
+            },
+            "5to Año": {
+                "1° Cuatrimestre": [
+                    { id: "02325", nombre: "02325 - METODOLOGÍA DE LA INVESTIGACIÓN JURÍDICA", correlativas: ["02306", "02347", "02349"] },
+                    { id: "02328", nombre: "02328 - DERECHO AMBIENTAL Y DE LOS RECURSOS NATURALES", correlativas: ["02314"] },
+                    { id: "02334", nombre: "02334 - SEMINARIO DE RESOLUCIÓN ADECUADA DE CONTROVERSIAS", correlativas: ["02323"] },
+                    { id: "02335", nombre: "02335 - PRÁCTICA PROFESIONAL I", correlativas: ["02348", "02327", "02323"] }
+                ],
+                "2° Cuatrimestre": [
+                    { id: "02329", nombre: "02329 - DERECHO INTERNACIONAL PRIVADO", correlativas: ["02323", "02349"] },
+                    { id: "02336", nombre: "02336 - PRÁCTICA PROFESIONAL II", correlativas: ["02335"] },
+                    { id: "02337", nombre: "02337 - SEMINARIO DE DERECHO DE LOS CONSUMIDORES", correlativas: ["02323", "02327", "02346"] }
+                ]
+            }
+        };
+
+        let progresoMaterias = {}; // Objeto para guardar el estado de las materias (aprobada: true/false)
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarProgreso();
+            renderizarMalla();
+        });
+
+        function cargarProgreso() {
+            const progresoGuardado = localStorage.getItem('progresoMalla');
+            if (progresoGuardado) {
+                progresoMaterias = JSON.parse(progresoGuardado);
+            } else {
+                // Inicializar todas las materias como no aprobadas si no hay progreso guardado
+                for (const año in mallaCurricular) {
+                    for (const ciclo in mallaCurricular[año]) {
+                        mallaCurricular[año][ciclo].forEach(materia => {
+                            progresoMaterias[materia.id] = false;
+                        });
+                    }
+                }
+            }
+        }
+
+        function guardarProgreso() {
+            localStorage.setItem('progresoMalla', JSON.stringify(progresoMaterias));
+        }
+
+        function esMateriaAprobada(idMateria) {
+            return progresoMaterias[idMateria];
+        }
+
+        function estanCorrelativasAprobadas(correlativas) {
+            if (correlativas.length === 0) {
+                return true;
+            }
+            return correlativas.every(corrId => esMateriaAprobada(corrId));
+        }
+
+        // Función auxiliar para obtener el nombre de una materia por su ID
+        function getNombreMateriaPorId(id) {
+            for (const año in mallaCurricular) {
+                for (const ciclo in mallaCurricular[año]) {
+                    const materiaEncontrada = mallaCurricular[año][ciclo].find(m => m.id === id);
+                    if (materiaEncontrada) {
+                        return materiaEncontrada.nombre;
+                    }
+                }
+            }
+            return id; // Si no lo encuentra, devuelve el ID
+        }
+
+        function obtenerMateriasFaltantes(correlativas) {
+            const faltantes = [];
+            correlativas.forEach(corrId => {
+                if (!esMateriaAprobada(corrId)) {
+                    faltantes.push(getNombreMateriaPorId(corrId));
+                }
+            });
+            return faltantes;
+        }
+
+        function renderizarMalla() {
+            const mallaContainer = document.getElementById('malla-curricular');
+            mallaContainer.innerHTML = ''; // Limpiar antes de renderizar
+
+            for (const añoNombre in mallaCurricular) {
+                const añoDiv = document.createElement('div');
+                añoDiv.classList.add('año-container');
+                añoDiv.innerHTML = `<h2>${añoNombre}</h2>`;
+
+                for (const cicloNombre in mallaCurricular[añoNombre]) {
+                    const cicloDiv = document.createElement('div');
+                    cicloDiv.classList.add('ciclo');
+                    cicloDiv.innerHTML = `<h3>${cicloNombre}</h3>`;
+
+                    mallaCurricular[añoNombre][cicloNombre].forEach(materia => {
+                        const materiaDiv = document.createElement('div');
+                        materiaDiv.classList.add('materia');
+                        materiaDiv.setAttribute('data-id', materia.id);
+                        materiaDiv.textContent = materia.nombre;
+
+                        const estaAprobada = esMateriaAprobada(materia.id);
+                        const correlativasListas = estanCorrelativasAprobadas(materia.correlativas);
+
+                        if (estaAprobada) {
+                            materiaDiv.classList.add('aprobada');
+                            const checkmark = document.createElement('span');
+                            checkmark.classList.add('checkmark');
+                            checkmark.textContent = ' ✔'; // Agrega un checkmark
+                            materiaDiv.appendChild(checkmark);
+                        } else if (!correlativasListas) {
+                            materiaDiv.classList.add('bloqueada');
+                            const tooltip = document.createElement('span');
+                            tooltip.classList.add('tooltip');
+                            const faltantes = obtenerMateriasFaltantes(materia.correlativas);
+                            tooltip.innerHTML = `Para cursar esta materia, debes aprobar primero:<br><strong>${faltantes.join(', ')}</strong>`;
+                            materiaDiv.appendChild(tooltip);
+                        }
+
+                        // Evento de clic para marcar/desmarcar
+                        // Solo permite hacer clic si no está bloqueada
+                        if (!materiaDiv.classList.contains('bloqueada')) {
+                            materiaDiv.addEventListener('click', () => {
+                                toggleMateria(materia.id);
+                            });
+                        }
+
+                        cicloDiv.appendChild(materiaDiv);
+                    });
+                    añoDiv.appendChild(cicloDiv);
+                }
+                mallaContainer.appendChild(añoDiv);
+            }
+        }
+
+        function toggleMateria(idMateria) {
+            // No permitir desmarcar si hay materias que dependen de ella y están aprobadas
+            let puedeDesmarcar = true;
+            for (const año in mallaCurricular) {
+                for (const ciclo in mallaCurricular[año]) {
+                    mallaCurricular[año][ciclo].forEach(materia => {
+                        if (materia.correlativas.includes(idMateria) && esMateriaAprobada(materia.id)) {
+                            puedeDesmarcar = false;
+                        }
+                    });
+                }
+            }
+
+            if (progresoMaterias[idMateria]) {
+                // Si la materia ya está aprobada, intenta desmarcarla
+                if (puedeDesmarcar) {
+                    progresoMaterias[idMateria] = false;
+                } else {
+                    alert('No puedes desmarcar esta materia porque otras materias aprobadas dependen de ella.');
+                    return; // No hagas nada si no se puede desmarcar
+                }
+            } else {
+                // Si no está aprobada, la marcamos como aprobada (se asume que si se puede hacer clic, no está bloqueada)
+                progresoMaterias[idMateria] = true;
+            }
+
+            guardarProgreso();
+            renderizarMalla(); // Volver a renderizar para actualizar el estado visual
+        }
+
+        function resetProgress() {
+            if (confirm('¿Estás seguro de que quieres reiniciar todo tu progreso? Esta acción no se puede deshacer.')) {
+                localStorage.removeItem('progresoMalla'); // Elimina el progreso de localStorage
+                progresoMaterias = {}; // Reinicia el objeto de progreso en memoria
+                cargarProgreso(); // Vuelve a inicializarlo con todo en falso
+                renderizarMalla(); // Vuelve a renderizar la malla
+                alert('¡Progreso reiniciado!');
+            }
+        }
+    </script>
+</body>
+</html>
